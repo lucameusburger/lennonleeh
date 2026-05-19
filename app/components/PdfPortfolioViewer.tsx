@@ -92,6 +92,9 @@ export default function PdfPortfolioViewer() {
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const hideControlsTimerRef = useRef<number | null>(null);
   const pinchRef = useRef<PinchState | null>(null);
+  const preloadedPagesRef = useRef<Set<number>>(new Set());
+  const preloadingPagesRef = useRef<Set<number>>(new Set());
+  const preloadRunRef = useRef(0);
   const renderTaskRef = useRef<RenderTask | null>(null);
   const renderIdRef = useRef(0);
   const lastWheelAtRef = useRef(0);
@@ -297,6 +300,9 @@ export default function PdfPortfolioViewer() {
         }
 
         loadedDocument = nextDocument;
+        preloadedPagesRef.current.clear();
+        preloadingPagesRef.current.clear();
+        preloadRunRef.current += 1;
         setPdfDocument(nextDocument);
         setPageCount(nextDocument.numPages);
         setPageNumber((currentPage) =>
@@ -329,27 +335,81 @@ export default function PdfPortfolioViewer() {
   }, []);
 
   useEffect(() => {
-    if (!pdfDocument || !pageCount) {
+    if (!pdfDocument || !pageCount || !hasRendered) {
       return;
     }
 
-    const neighbors = [pageNumber - 1, pageNumber + 1].filter(
-      (page) => page >= 1 && page <= pageCount,
-    );
+    const document = pdfDocument;
     let cancelled = false;
+    const runId = preloadRunRef.current + 1;
+    preloadRunRef.current = runId;
+    const preloadOrder: number[] = [];
 
-    for (const page of neighbors) {
-      void pdfDocument.getPage(page).then((pageProxy) => {
-        if (!cancelled) {
-          pageProxy.cleanup();
-        }
-      });
+    for (let distance = 1; distance < pageCount; distance += 1) {
+      const nextPage = pageNumber + distance;
+      const previousPage = pageNumber - distance;
+
+      if (nextPage <= pageCount) {
+        preloadOrder.push(nextPage);
+      }
+
+      if (previousPage >= 1) {
+        preloadOrder.push(previousPage);
+      }
     }
+
+    const waitForIdle = () =>
+      new Promise<void>((resolve) => {
+        if (typeof window.requestIdleCallback === "function") {
+          window.requestIdleCallback(() => resolve(), { timeout: 1200 });
+          return;
+        }
+
+        globalThis.setTimeout(resolve, 90);
+      });
+
+    async function preloadPage(page: number) {
+      if (
+        preloadedPagesRef.current.has(page) ||
+        preloadingPagesRef.current.has(page)
+      ) {
+        return;
+      }
+
+      preloadingPagesRef.current.add(page);
+
+      try {
+        const pageProxy = await document.getPage(page);
+
+        await pageProxy.getOperatorList({ intent: "display" });
+        preloadedPagesRef.current.add(page);
+      } catch {
+        // A preload miss should never interrupt the visible renderer.
+      } finally {
+        preloadingPagesRef.current.delete(page);
+      }
+    }
+
+    async function preloadPages() {
+      for (let index = 0; index < preloadOrder.length; index += 1) {
+        if (cancelled || preloadRunRef.current !== runId) {
+          return;
+        }
+
+        if (index > 1) {
+          await waitForIdle();
+        }
+
+        await preloadPage(preloadOrder[index]);
+      }
+    }
+
+    void preloadPages();
 
     return () => {
       cancelled = true;
     };
-  }, [pageCount, pageNumber, pdfDocument]);
+  }, [hasRendered, pageCount, pageNumber, pdfDocument]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
