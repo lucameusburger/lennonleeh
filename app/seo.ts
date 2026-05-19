@@ -1,4 +1,4 @@
-const fallbackSiteOrigin = "https://lennonleeh.com";
+const fallbackSiteOrigin = "https://www.lennonleeh.xyz";
 
 function getSiteOrigin() {
   const configuredOrigin =
