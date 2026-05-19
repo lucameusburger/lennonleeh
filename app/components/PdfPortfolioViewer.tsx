@@ -42,6 +42,16 @@ type PinchState = {
   startZoom: number;
 };
 
+type TapState = {
+  x: number;
+  y: number;
+  time: number;
+};
+
+type NavigateOptions = {
+  revealControls?: boolean;
+};
+
 function clampPage(page: number, pageCount: number) {
   return Math.min(Math.max(page, 1), Math.max(pageCount, 1));
 }
@@ -87,6 +97,13 @@ function formatProgress(progress: number) {
   return `${Math.round(progress * 100)}%`;
 }
 
+function isReaderControlTarget(target: EventTarget | null) {
+  return (
+    target instanceof Element &&
+    target.closest("[data-reader-control='true']") !== null
+  );
+}
+
 export default function PdfPortfolioViewer() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
@@ -105,6 +122,7 @@ export default function PdfPortfolioViewer() {
   const renderTaskRef = useRef<RenderTask | null>(null);
   const renderIdRef = useRef(0);
   const lastWheelAtRef = useRef(0);
+  const tapStartRef = useRef<TapState | null>(null);
   const touchStartYRef = useRef<number | null>(null);
   const zoomRef = useRef(1);
   const zoomCommitTimerRef = useRef<number | null>(null);
@@ -204,9 +222,32 @@ export default function PdfPortfolioViewer() {
     }
   }, [isCoarsePointer]);
 
+  const toggleControls = useCallback(() => {
+    if (hideControlsTimerRef.current !== null) {
+      window.clearTimeout(hideControlsTimerRef.current);
+      hideControlsTimerRef.current = null;
+    }
+
+    if (controlsVisible) {
+      setControlsVisible(false);
+      return;
+    }
+
+    setControlsVisible(true);
+
+    if (!isCoarsePointer) {
+      hideControlsTimerRef.current = window.setTimeout(() => {
+        setControlsVisible(false);
+      }, 1800);
+    }
+  }, [controlsVisible, isCoarsePointer]);
+
   const navigate = useCallback(
-    (direction: -1 | 1) => {
-      revealControls();
+    (direction: -1 | 1, options: NavigateOptions = {}) => {
+      if (options.revealControls ?? true) {
+        revealControls();
+      }
+
       lastNavigationAtRef.current = window.performance.now();
       preloadRunRef.current += 1;
       pinchRef.current = null;
@@ -744,7 +785,11 @@ export default function PdfPortfolioViewer() {
   );
 
   const handleTouchStart = useCallback((event: TouchEvent<HTMLDivElement>) => {
-    revealControls();
+    if (isReaderControlTarget(event.target)) {
+      tapStartRef.current = null;
+      touchStartYRef.current = null;
+      return;
+    }
 
     if (event.touches.length === 2) {
       const center = getTouchCenter(event.touches);
@@ -760,12 +805,26 @@ export default function PdfPortfolioViewer() {
         startZoom: zoomRef.current,
         ...anchor,
       };
+      tapStartRef.current = null;
       touchStartYRef.current = null;
       return;
     }
 
-    touchStartYRef.current = event.touches[0]?.clientY ?? null;
-  }, [getZoomAnchor, revealControls]);
+    const touch = event.touches[0];
+
+    if (!touch) {
+      tapStartRef.current = null;
+      touchStartYRef.current = null;
+      return;
+    }
+
+    tapStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: window.performance.now(),
+    };
+    touchStartYRef.current = touch.clientY;
+  }, [getZoomAnchor]);
 
   const handleTouchMove = useCallback((event: TouchEvent<HTMLDivElement>) => {
     const pinch = pinchRef.current;
@@ -783,7 +842,6 @@ export default function PdfPortfolioViewer() {
     }
 
     event.preventDefault();
-    revealControls();
 
     const anchor = getZoomAnchor(center.x, center.y);
     const nextZoom = clampZoom(pinch.startZoom * (distance / pinch.distance));
@@ -795,34 +853,79 @@ export default function PdfPortfolioViewer() {
 
     zoomRef.current = nextZoom;
     setActiveZoom(nextZoom);
-  }, [getZoomAnchor, revealControls]);
+  }, [getZoomAnchor]);
 
   const handleTouchEnd = useCallback(
     (event: TouchEvent<HTMLDivElement>) => {
+      if (isReaderControlTarget(event.target)) {
+        tapStartRef.current = null;
+        touchStartYRef.current = null;
+        return;
+      }
+
       if (pinchRef.current) {
         if (event.touches.length < 2) {
           pinchRef.current = null;
+          tapStartRef.current = null;
+          touchStartYRef.current = null;
           setTargetRenderZoom(zoomRef.current);
         }
         return;
       }
 
+      const tapStart = tapStartRef.current;
+      const changedTouch = event.changedTouches[0];
+
+      tapStartRef.current = null;
+
+      if (!changedTouch) {
+        touchStartYRef.current = null;
+        return;
+      }
+
+      if (tapStart) {
+        const deltaX = Math.abs(changedTouch.clientX - tapStart.x);
+        const deltaY = Math.abs(changedTouch.clientY - tapStart.y);
+        const elapsed = window.performance.now() - tapStart.time;
+
+        if (deltaX < 14 && deltaY < 14 && elapsed < 600) {
+          touchStartYRef.current = null;
+          toggleControls();
+          return;
+        }
+      }
+
       if (zoomRef.current > 1.01) {
+        touchStartYRef.current = null;
         return;
       }
 
       const startY = touchStartYRef.current;
-      const endY = event.changedTouches[0]?.clientY ?? null;
+      const endY = changedTouch.clientY;
 
       touchStartYRef.current = null;
 
-      if (startY === null || endY === null || Math.abs(startY - endY) < 56) {
+      if (startY === null) {
         return;
       }
 
-      navigate(startY > endY ? 1 : -1);
+      const verticalDistance = startY - endY;
+      const horizontalDistance = tapStart
+        ? tapStart.x - changedTouch.clientX
+        : 0;
+
+      if (
+        Math.abs(verticalDistance) < 56 ||
+        Math.abs(verticalDistance) <= Math.abs(horizontalDistance)
+      ) {
+        return;
+      }
+
+      navigate(verticalDistance > 0 ? 1 : -1, {
+        revealControls: controlsVisible,
+      });
     },
-    [navigate],
+    [controlsVisible, navigate, toggleControls],
   );
 
   const visualScale = activeZoom / renderedZoom;
@@ -832,7 +935,7 @@ export default function PdfPortfolioViewer() {
   const contentHeight = Math.max(viewerSize.height, visualPageHeight);
   const canGoBack = pageNumber > 1;
   const canGoForward = pageCount > 0 && pageNumber < pageCount;
-  const showTransientControls = isCoarsePointer || controlsVisible;
+  const showTransientControls = controlsVisible;
   const statusText = error ?? formatProgress(loadProgress);
   const transientControlsClass = showTransientControls
     ? "opacity-100"
@@ -887,6 +990,8 @@ export default function PdfPortfolioViewer() {
       ) : null}
 
       <div
+        aria-hidden={!showTransientControls}
+        data-reader-control="true"
         className={`fixed right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 transition-opacity duration-300 sm:right-5 ${transientControlsClass}`}
       >
         <button
@@ -894,6 +999,7 @@ export default function PdfPortfolioViewer() {
           className={iconButtonClass}
           disabled={!canGoBack}
           onClick={() => navigate(-1)}
+          tabIndex={showTransientControls ? undefined : -1}
           title="Previous page"
           type="button"
         >
@@ -904,6 +1010,7 @@ export default function PdfPortfolioViewer() {
           className={iconButtonClass}
           disabled={!canGoForward}
           onClick={() => navigate(1)}
+          tabIndex={showTransientControls ? undefined : -1}
           title="Next page"
           type="button"
         >
@@ -913,10 +1020,13 @@ export default function PdfPortfolioViewer() {
 
       <a
         aria-label="Download portfolio PDF"
+        aria-hidden={!showTransientControls}
         className={`fixed left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition-opacity duration-300 hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${transientControlsClass}`}
+        data-reader-control="true"
         download="Lennon-Hartmann-Portfolio.pdf"
         href={PDF_URL}
         style={{ bottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
+        tabIndex={showTransientControls ? undefined : -1}
         title="Download portfolio PDF"
       >
         <Download aria-hidden="true" className="h-4 w-4" strokeWidth={2.2} />
@@ -926,8 +1036,8 @@ export default function PdfPortfolioViewer() {
       {pageCount > 0 ? (
         <div
           aria-live="polite"
-          className={`fixed left-1/2 z-10 -translate-x-1/2 rounded-full bg-black px-3 py-1.5 text-xs font-medium tabular-nums text-white transition-opacity duration-300 ${transientControlsClass}`}
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 4.6rem)" }}
+          aria-hidden={!showTransientControls}
+          className={`fixed left-1/2 top-[calc(env(safe-area-inset-top)+0.75rem)] z-10 -translate-x-1/2 rounded-full bg-black px-3 py-1.5 text-xs font-medium tabular-nums text-white transition-opacity duration-300 sm:top-auto sm:bottom-[calc(env(safe-area-inset-bottom)+4.6rem)] ${transientControlsClass}`}
         >
           {pageNumber} / {pageCount}
         </div>
