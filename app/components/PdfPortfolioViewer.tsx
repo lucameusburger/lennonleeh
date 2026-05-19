@@ -13,6 +13,7 @@ import {
 import type {
   PDFDocumentLoadingTask,
   PDFDocumentProxy,
+  PDFPageProxy,
   RenderTask,
 } from "pdfjs-dist";
 
@@ -91,6 +92,12 @@ export default function PdfPortfolioViewer() {
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<HTMLDivElement | null>(null);
   const hideControlsTimerRef = useRef<number | null>(null);
+  const isRenderingRef = useRef(true);
+  const lastNavigationAtRef = useRef(0);
+  const pageCacheRef = useRef<Map<number, PDFPageProxy>>(new Map());
+  const pagePromiseCacheRef = useRef<Map<number, Promise<PDFPageProxy>>>(
+    new Map(),
+  );
   const pinchRef = useRef<PinchState | null>(null);
   const preloadedPagesRef = useRef<Set<number>>(new Set());
   const preloadingPagesRef = useRef<Set<number>>(new Set());
@@ -126,6 +133,38 @@ export default function PdfPortfolioViewer() {
   const [renderedZoom, setRenderedZoom] = useState(1);
   const [targetRenderZoom, setTargetRenderZoom] = useState(1);
   const [error, setError] = useState<string | null>(null);
+
+  const getCachedPage = useCallback(
+    (document: PDFDocumentProxy, page: number) => {
+      const cachedPage = pageCacheRef.current.get(page);
+
+      if (cachedPage) {
+        return Promise.resolve(cachedPage);
+      }
+
+      const cachedPromise = pagePromiseCacheRef.current.get(page);
+
+      if (cachedPromise) {
+        return cachedPromise;
+      }
+
+      const pagePromise = document.getPage(page).then(
+        (pageProxy) => {
+          pageCacheRef.current.set(page, pageProxy);
+          pagePromiseCacheRef.current.delete(page);
+          return pageProxy;
+        },
+        (pageError) => {
+          pagePromiseCacheRef.current.delete(page);
+          throw pageError;
+        },
+      );
+
+      pagePromiseCacheRef.current.set(page, pagePromise);
+      return pagePromise;
+    },
+    [],
+  );
 
   const getZoomAnchor = useCallback((clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
@@ -168,6 +207,8 @@ export default function PdfPortfolioViewer() {
   const navigate = useCallback(
     (direction: -1 | 1) => {
       revealControls();
+      lastNavigationAtRef.current = window.performance.now();
+      preloadRunRef.current += 1;
       pinchRef.current = null;
       zoomRef.current = 1;
       if (zoomCommitTimerRef.current !== null) {
@@ -300,6 +341,8 @@ export default function PdfPortfolioViewer() {
         }
 
         loadedDocument = nextDocument;
+        pageCacheRef.current.clear();
+        pagePromiseCacheRef.current.clear();
         preloadedPagesRef.current.clear();
         preloadingPagesRef.current.clear();
         preloadRunRef.current += 1;
@@ -361,12 +404,23 @@ export default function PdfPortfolioViewer() {
     const waitForIdle = () =>
       new Promise<void>((resolve) => {
         if (typeof window.requestIdleCallback === "function") {
-          window.requestIdleCallback(() => resolve(), { timeout: 1200 });
+          window.requestIdleCallback(() => resolve(), { timeout: 1800 });
           return;
         }
 
-        globalThis.setTimeout(resolve, 90);
+        globalThis.setTimeout(resolve, 180);
       });
+
+    async function waitUntilSafeToPreload() {
+      while (
+        !cancelled &&
+        preloadRunRef.current === runId &&
+        (isRenderingRef.current ||
+          window.performance.now() - lastNavigationAtRef.current < 900)
+      ) {
+        await waitForIdle();
+      }
+    }
 
     async function preloadPage(page: number) {
       if (
@@ -379,9 +433,7 @@ export default function PdfPortfolioViewer() {
       preloadingPagesRef.current.add(page);
 
       try {
-        const pageProxy = await document.getPage(page);
-
-        await pageProxy.getOperatorList({ intent: "display" });
+        await getCachedPage(document, page);
         preloadedPagesRef.current.add(page);
       } catch {
         // A preload miss should never interrupt the visible renderer.
@@ -396,8 +448,11 @@ export default function PdfPortfolioViewer() {
           return;
         }
 
-        if (index > 1) {
-          await waitForIdle();
+        await waitForIdle();
+        await waitUntilSafeToPreload();
+
+        if (cancelled || preloadRunRef.current !== runId) {
+          return;
         }
 
         await preloadPage(preloadOrder[index]);
@@ -409,7 +464,7 @@ export default function PdfPortfolioViewer() {
     return () => {
       cancelled = true;
     };
-  }, [hasRendered, pageCount, pageNumber, pdfDocument]);
+  }, [getCachedPage, hasRendered, pageCount, pageNumber, pdfDocument]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -425,15 +480,15 @@ export default function PdfPortfolioViewer() {
     let cancelled = false;
 
     renderTaskRef.current?.cancel();
+    isRenderingRef.current = true;
     setIsRendering(true);
     setError(null);
 
     async function renderPage() {
       try {
-        const page = await document.getPage(pageNumber);
+        const page = await getCachedPage(document, pageNumber);
 
         if (cancelled || renderIdRef.current !== renderId) {
-          page.cleanup();
           return;
         }
 
@@ -459,8 +514,8 @@ export default function PdfPortfolioViewer() {
         const renderContext = outputCanvas.getContext("2d", { alpha: false });
 
         if (!renderContext) {
-          page.cleanup();
           setError("The browser could not create a canvas context.");
+          isRenderingRef.current = false;
           setIsRendering(false);
           return;
         }
@@ -500,8 +555,8 @@ export default function PdfPortfolioViewer() {
             const displayContext = renderCanvas.getContext("2d", { alpha: false });
 
             if (!displayContext) {
-              page.cleanup();
               setError("The browser could not create a canvas context.");
+              isRenderingRef.current = false;
               setIsRendering(false);
               return;
             }
@@ -511,11 +566,11 @@ export default function PdfPortfolioViewer() {
             setRenderedZoom(targetRenderZoom);
           }
 
+          preloadedPagesRef.current.add(pageNumber);
           setHasRendered(true);
+          isRenderingRef.current = false;
           setIsRendering(false);
         }
-
-        page.cleanup();
       } catch (renderError) {
         if (cancelled || isRenderCancel(renderError)) {
           return;
@@ -526,6 +581,7 @@ export default function PdfPortfolioViewer() {
             ? renderError.message
             : "This page could not be rendered.",
         );
+        isRenderingRef.current = false;
         setIsRendering(false);
       }
     }
@@ -537,6 +593,7 @@ export default function PdfPortfolioViewer() {
       renderTaskRef.current?.cancel();
     };
   }, [
+    getCachedPage,
     pageCount,
     pageNumber,
     pdfDocument,
@@ -597,6 +654,8 @@ export default function PdfPortfolioViewer() {
       if (event.key === "Home") {
         event.preventDefault();
         revealControls();
+        lastNavigationAtRef.current = window.performance.now();
+        preloadRunRef.current += 1;
         pinchRef.current = null;
         zoomRef.current = 1;
         setActiveZoom(1);
@@ -610,6 +669,8 @@ export default function PdfPortfolioViewer() {
       if (event.key === "End" && pageCount > 0) {
         event.preventDefault();
         revealControls();
+        lastNavigationAtRef.current = window.performance.now();
+        preloadRunRef.current += 1;
         pinchRef.current = null;
         zoomRef.current = 1;
         setActiveZoom(1);
