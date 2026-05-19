@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #101114;
+  --background: #000000;
   --foreground: #ffffff;
 }
 
@@ -33,4 +33,13 @@ body {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+.pdf-scroll-area {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.pdf-scroll-area::-webkit-scrollbar {
+  display: none;
 }
