@@ -22,7 +22,7 @@ const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
 const PDF_URL = "/portfolio.pdf";
 const WORKER_URL = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
+  "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
   import.meta.url,
 ).toString();
 
@@ -311,7 +311,7 @@ export default function PdfPortfolioViewer() {
 
     async function loadPdf() {
       try {
-        const pdfjs = await import("pdfjs-dist");
+        const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
         pdfjs.GlobalWorkerOptions.workerSrc = WORKER_URL;
 
