@@ -1037,7 +1037,7 @@ export default function PdfPortfolioViewer() {
         <div
           aria-live="polite"
           aria-hidden={!showTransientControls}
-          className={`fixed left-1/2 top-[calc(env(safe-area-inset-top)+0.75rem)] z-10 -translate-x-1/2 rounded-full bg-black px-3 py-1.5 text-xs font-medium tabular-nums text-white transition-opacity duration-300 sm:top-auto sm:bottom-[calc(env(safe-area-inset-bottom)+4.6rem)] ${transientControlsClass}`}
+          className={`fixed left-1/2 top-[calc(env(safe-area-inset-top)+0.75rem)] z-10 -translate-x-1/2 rounded-full bg-black px-3 py-1.5 text-xs font-medium tabular-nums text-white transition-opacity duration-300 ${transientControlsClass}`}
         >
           {pageNumber} / {pageCount}
         </div>
