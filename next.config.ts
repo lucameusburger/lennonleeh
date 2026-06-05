@@ -27,8 +27,12 @@ const nextConfig: NextConfig = {
     return {
       beforeFiles: [
         {
+          source: "/portfolio.pdf",
+          destination: "/api/portfolio",
+        },
+        {
           source: "/",
-          destination: "/portfolio.pdf",
+          destination: "/api/portfolio",
         },
       ],
     };
