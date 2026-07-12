@@ -1,5 +1,5 @@
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
 minimumReleaseAgeExclude:
   - '@einblick/sdk'
+allowBuilds:
+  sharp: true
+  unrs-resolver: true
