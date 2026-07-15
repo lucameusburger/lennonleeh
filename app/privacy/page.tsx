@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PrivacySettingsButton } from "../components/EinblickAnalyticsConsent";
 import { person } from "../seo";
 
 export const metadata: Metadata = {
@@ -36,7 +37,7 @@ export default function PrivacyPage() {
             user-agent are processed transiently to create short-lived
             pseudonymous measurements; they are not stored as raw event fields.
             The choice itself is stored locally in your browser and can be
-            changed at any time through “Privacy choices”.
+            changed at any time through “Privacy choices” below.
           </p>
           <p>
             The website operator is responsible for this processing and uses
@@ -51,6 +52,9 @@ export default function PrivacyPage() {
             PDF. That raw PDF response does not run website analytics, so its
             views are not included in Einblick measurements.
           </p>
+        </div>
+        <div className="mt-10 border-t border-white/25 pt-6">
+          <PrivacySettingsButton />
         </div>
       </div>
     </main>

@@ -3,10 +3,11 @@
 import type { AnalyticsConsent } from "@einblick/analytics";
 import { Analytics } from "@einblick/analytics/next";
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "einblick-analytics-consent";
 const CONSENT_EVENT = "einblick-analytics-consent-change";
+const OPEN_PRIVACY_SETTINGS_EVENT = "privacy-settings:open";
 let memoryConsent: AnalyticsConsent = "unknown";
 
 type PrivacyNavigator = Navigator & { globalPrivacyControl?: boolean };
@@ -105,6 +106,23 @@ export function EinblickAnalyticsConsent() {
     decide(analyticsAllowed && !gpcEnabled ? "granted" : "denied");
   };
 
+  useEffect(() => {
+    const handleOpenPrivacySettings = () => {
+      setAnalyticsAllowed(consent === "granted" && !gpcEnabled);
+      setPanel("preferences");
+    };
+
+    window.addEventListener(
+      OPEN_PRIVACY_SETTINGS_EVENT,
+      handleOpenPrivacySettings,
+    );
+    return () =>
+      window.removeEventListener(
+        OPEN_PRIVACY_SETTINGS_EVENT,
+        handleOpenPrivacySettings,
+      );
+  }, [consent, gpcEnabled]);
+
   return (
     <>
       <Analytics consent={gpcEnabled ? "denied" : consent} />
@@ -115,6 +133,7 @@ export function EinblickAnalyticsConsent() {
           aria-modal="true"
           className="fixed inset-x-3 bottom-3 z-50 mx-auto max-h-[calc(100dvh-1.5rem)] max-w-3xl overflow-y-auto border border-white/40 bg-[#0a0a0a] text-white sm:inset-x-6 sm:bottom-6 sm:max-h-[calc(100dvh-3rem)]"
           role="dialog"
+          id="privacy-settings-dialog"
         >
           <div className="grid gap-5 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:p-6">
             <div>
@@ -127,8 +146,9 @@ export function EinblickAnalyticsConsent() {
                   : "Your visit, your choice"}
               </h2>
               <p className="mt-2 max-w-xl text-sm leading-6 text-white/70">
-                Einblick can measure pseudonymous page views without analytics
-                cookies. Nothing is collected until you choose. Read the{" "}
+                This site stores your privacy choice locally. Optional services
+                remain off until you decide. Review every category under
+                Settings or read the{" "}
                 <Link className="underline underline-offset-4" href="/privacy">
                   privacy information
                 </Link>
@@ -208,11 +228,11 @@ export function EinblickAnalyticsConsent() {
             {activePanel === "summary" ? (
               <>
                 <ChoiceButton onClick={() => decide("denied")}>
-                  Reject analytics
+                  Reject all
                 </ChoiceButton>
-                <ChoiceButton onClick={openPreferences}>Customize</ChoiceButton>
+                <ChoiceButton onClick={openPreferences}>Settings</ChoiceButton>
                 <ChoiceButton onClick={() => decide("granted")}>
-                  Accept analytics
+                  Accept all
                 </ChoiceButton>
               </>
             ) : (
@@ -224,7 +244,9 @@ export function EinblickAnalyticsConsent() {
                 >
                   Back
                 </ChoiceButton>
-                <div className="hidden sm:block" />
+                <ChoiceButton onClick={() => decide("denied")}>
+                  Reject all
+                </ChoiceButton>
                 <ChoiceButton onClick={savePreferences} primary>
                   Save preferences
                 </ChoiceButton>
@@ -232,16 +254,21 @@ export function EinblickAnalyticsConsent() {
             )}
           </div>
         </section>
-      ) : (
-        <button
-          aria-label="Open privacy choices"
-          className="fixed bottom-4 right-4 z-50 border border-white/40 bg-black px-4 py-2.5 font-mono text-[11px] tracking-[0.12em] text-white transition-colors hover:border-white hover:bg-white hover:text-black"
-          onClick={openPreferences}
-          type="button"
-        >
-          PRIVACY CHOICES
-        </button>
-      )}
+      ) : null}
     </>
+  );
+}
+
+export function PrivacySettingsButton() {
+  return (
+    <button
+      aria-controls="privacy-settings-dialog"
+      aria-haspopup="dialog"
+      className="border border-white/40 bg-black px-4 py-2.5 font-mono text-[11px] tracking-[0.12em] text-white transition-colors hover:border-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      onClick={() => window.dispatchEvent(new Event(OPEN_PRIVACY_SETTINGS_EVENT))}
+      type="button"
+    >
+      PRIVACY CHOICES
+    </button>
   );
 }
