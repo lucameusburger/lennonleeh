@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { EinblickNextEditBoot } from "@einblick/sdk/next";
+import { EinblickNextEditBoot } from "@einblick/editor/next";
+import { EinblickAnalyticsConsent } from "./components/EinblickAnalyticsConsent";
 import "./globals.css";
 import {
   metadataBase,
@@ -132,6 +133,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <EinblickNextEditBoot>{children}</EinblickNextEditBoot>
+        <EinblickAnalyticsConsent />
       </body>
     </html>
   );

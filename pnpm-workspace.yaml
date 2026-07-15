@@ -1,5 +1,7 @@
 minimumReleaseAgeExclude:
   - '@einblick/sdk'
+  - '@einblick/analytics@0.1.2'
+  - '@einblick/editor@0.1.0'
 allowBuilds:
   sharp: true
   unrs-resolver: true
