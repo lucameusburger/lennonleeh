@@ -1,3 +1,5 @@
+import "server-only";
+
 import { getEinblickAssetUrl } from "@einblick/sdk";
 import { cache } from "react";
 import { einblickTags } from "./einblick-cache";
@@ -15,6 +17,7 @@ const getCmsFetchOptions = (resourceSlug: string) => ({
 export const getSiteSettings = cache(async () => {
   const einblick = createGeneratedEinblickClient();
   const response = await einblick.request("site-settings", {
+    fields: ["pdf"],
     fetch: getCmsFetchOptions("site-settings"),
   });
 
