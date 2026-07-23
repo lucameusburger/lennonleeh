@@ -9,14 +9,14 @@ importers:
   .:
     dependencies:
       '@einblick/analytics':
-        specifier: 0.1.2
-        version: 0.1.2(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 0.1.3
+        version: 0.1.3(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@einblick/editor':
-        specifier: 0.1.1
-        version: 0.1.1(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 0.1.4
+        version: 0.1.4(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@einblick/sdk':
-        specifier: 0.8.4
-        version: 0.8.4(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 0.8.6
+        version: 0.8.6(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       lucide-react:
         specifier: ^1.16.0
         version: 1.16.0(react@19.2.4)
@@ -131,8 +131,8 @@ packages:
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
 
-  '@einblick/analytics@0.1.2':
-    resolution: {integrity: sha512-mO/KeKXIzzIpoRfT6ca3PNf6/o5ulPFsa8CIBUCD2Recq2T8/64IUhPBjWwIIbTJfzdQmMmegwG7i/oHJWztcQ==}
+  '@einblick/analytics@0.1.3':
+    resolution: {integrity: sha512-e4jFg9jZsso7L8FekNcd9SVjfvqldO4cNzvEkZMODiqfRLPBeUL6aEjkB0Y+OQBvSfKkfm1o9VlqFMpOttJqoA==}
     engines: {node: '>=20'}
     peerDependencies:
       next: '>=15.0.0'
@@ -146,8 +146,8 @@ packages:
       react-dom:
         optional: true
 
-  '@einblick/editor@0.1.1':
-    resolution: {integrity: sha512-61AnGKg5Qu0ECqK7gItz7rQ2R9xdfeVzRmHwMnHqPN+Mpnv1VpP1UhTRXW4CK0zWLK6woUJKdPYEBmYR9i4GRA==}
+  '@einblick/editor@0.1.4':
+    resolution: {integrity: sha512-kQ7yUz37JKj0YTcfrRhUd9klBh8sRsVTy5ORHpUHZWnECnc5cKWWpFn4ezr0KMrTLIvUogrDe322mP7+WeGwZQ==}
     engines: {node: '>=24.0.0'}
     peerDependencies:
       next: ^15.5.18 || >=16.2.6
@@ -161,8 +161,8 @@ packages:
       react-dom:
         optional: true
 
-  '@einblick/sdk@0.8.4':
-    resolution: {integrity: sha512-zpHp/Bsp3hWMSwl0quppSS1fCgTeE1stZteXLdKTtn5IFImNeeZdXWlWH2eDhGXnipRQYvWl+1s+34rGkY3AzA==}
+  '@einblick/sdk@0.8.6':
+    resolution: {integrity: sha512-0IkZiMCdo6Hy6Z2hjzX8EtIobPY8Vz6YO9oNgVtkUjvA5spsOzn84V+nf604Pu38NsHU9jvbP22OMH7cERyCHw==}
     engines: {node: '>=24.0.0'}
     hasBin: true
     peerDependencies:
@@ -2211,19 +2211,19 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@einblick/analytics@0.1.2(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@einblick/analytics@0.1.3(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     optionalDependencies:
       next: 16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  '@einblick/editor@0.1.1(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@einblick/editor@0.1.4(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     optionalDependencies:
       next: 16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  '@einblick/sdk@0.8.4(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@einblick/sdk@0.8.6(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     optionalDependencies:
       next: 16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
