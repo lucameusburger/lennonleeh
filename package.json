@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@einblick/analytics": "0.1.3",
-    "@einblick/editor": "0.1.4",
+    "@einblick/editor": "0.1.6",
     "@einblick/sdk": "0.10.0",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
