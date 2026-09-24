@@ -10,7 +10,7 @@ const EINBLICK_REVALIDATE_SECONDS = 60;
 const getCmsFetchOptions = (resourceSlug: string) => ({
   next: {
     revalidate: EINBLICK_REVALIDATE_SECONDS,
-    tags: einblickTags.for(resourceSlug),
+    tags: einblickTags.forFetch(resourceSlug),
   },
 });
 
