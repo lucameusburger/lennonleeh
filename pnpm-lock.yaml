@@ -11,9 +11,6 @@ importers:
       '@einblick/analytics':
         specifier: 0.1.5
         version: 0.1.5(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@einblick/editor':
-        specifier: 0.1.7
-        version: 0.1.7(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@einblick/sdk':
         specifier: 2.0.0
         version: 2.0.0(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -136,21 +133,6 @@ packages:
     engines: {node: '>=20'}
     peerDependencies:
       next: '>=15.0.0'
-      react: '>=18.2.0'
-      react-dom: '>=18.2.0'
-    peerDependenciesMeta:
-      next:
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
-
-  '@einblick/editor@0.1.7':
-    resolution: {integrity: sha512-Lgj9DxEqzblsVkmAs9OvLBmO0gmYKCQFP4hhOi9R1ZPYWNIbTpuXwQC3fzLHr4RzU/fk840r1dPtD5J5w2wG4w==}
-    engines: {node: '>=24.0.0'}
-    peerDependencies:
-      next: ^15.5.18 || >=16.2.6
       react: '>=18.2.0'
       react-dom: '>=18.2.0'
     peerDependenciesMeta:
@@ -2213,12 +2195,6 @@ snapshots:
       '@babel/helper-validator-identifier': 7.28.5
 
   '@einblick/analytics@0.1.5(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
-    optionalDependencies:
-      next: 16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-
-  '@einblick/editor@0.1.7(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     optionalDependencies:
       next: 16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
