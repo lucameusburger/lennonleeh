@@ -13,8 +13,8 @@
     "einblick:generate": "einblick-sdk generate --output app/lib/einblick.generated.ts"
   },
   "dependencies": {
-    "@einblick/analytics": "0.1.5",
-    "@einblick/sdk": "2.0.0",
+    "@einblick/analytics": "0.1.6",
+    "@einblick/sdk": "2.1.0",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "pdfjs-dist": "^5.7.284",

@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@einblick/analytics':
-        specifier: 0.1.5
-        version: 0.1.5(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 0.1.6
+        version: 0.1.6(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@einblick/sdk':
-        specifier: 2.0.0
-        version: 2.0.0(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 2.1.0
+        version: 2.1.0(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       lucide-react:
         specifier: ^1.16.0
         version: 1.16.0(react@19.2.4)
@@ -128,8 +128,8 @@ packages:
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
 
-  '@einblick/analytics@0.1.5':
-    resolution: {integrity: sha512-g1Wymj7XzpJRdcNfDLO/v/VB8M+VYdUyQHUy02lKcD+JxFjDEf4zwcwLdUFEKQFnS0z2HVryt+BfWkLzr/4yAA==}
+  '@einblick/analytics@0.1.6':
+    resolution: {integrity: sha512-jJx/V5nWdkbIiHTcjz4VUxQTcpRkR6LNS4zr5Hm+OJLZfbp+NT9RfidC4MsLe5ZNe7LsgG4AIin0bnGzEcOwJQ==}
     engines: {node: '>=20'}
     peerDependencies:
       next: '>=15.0.0'
@@ -143,8 +143,8 @@ packages:
       react-dom:
         optional: true
 
-  '@einblick/sdk@2.0.0':
-    resolution: {integrity: sha512-oyM3u0090xzsa69DC8YzFWh7D+/lAkGpzTBoiarRhy2NLhy4EFoDg5qutpBv0u6wlilvAjfQ4P9ay7kiVR/0GQ==}
+  '@einblick/sdk@2.1.0':
+    resolution: {integrity: sha512-XrXEbbHB7QPDnNbqDiBvFlO6ysYb2tiK1yVolPx6uRIRBKlbPeRlCu5ArWO5t/WcbilPKiHPLtdB9UYDAlbRZA==}
     engines: {node: '>=24.0.0'}
     hasBin: true
     peerDependencies:
@@ -2194,13 +2194,13 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@einblick/analytics@0.1.5(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@einblick/analytics@0.1.6(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     optionalDependencies:
       next: 16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  '@einblick/sdk@2.0.0(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@einblick/sdk@2.1.0(next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     optionalDependencies:
       next: 16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
