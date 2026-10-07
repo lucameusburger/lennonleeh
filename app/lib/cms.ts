@@ -7,18 +7,13 @@ import { createGeneratedEinblickClient } from "./einblick.generated";
 
 const EINBLICK_REVALIDATE_SECONDS = 60;
 
-const getCmsFetchOptions = (resourceSlug: string) => ({
-  next: {
-    revalidate: EINBLICK_REVALIDATE_SECONDS,
-    tags: einblickTags.forFetch(resourceSlug),
-  },
-});
-
 export const getSiteSettings = cache(async () => {
-  const einblick = createGeneratedEinblickClient();
+  const einblick = createGeneratedEinblickClient({
+    cacheTags: einblickTags,
+    requestInit: { next: { revalidate: EINBLICK_REVALIDATE_SECONDS } },
+  });
   const response = await einblick.request("site-settings", {
     fields: ["pdf"],
-    fetch: getCmsFetchOptions("site-settings"),
   });
 
   return response.record.fields;

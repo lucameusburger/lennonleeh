@@ -10,11 +10,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "einblick:generate": "einblick-sdk generate --output app/lib/einblick.generated.ts"
+    "einblick:generate": "einblick-sdk generate --website website --output app/lib/einblick.generated.ts"
   },
   "dependencies": {
     "@einblick/analytics": "0.1.6",
-    "@einblick/sdk": "2.1.0",
+    "@einblick/sdk": "3.0.0",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
     "pdfjs-dist": "^5.7.284",

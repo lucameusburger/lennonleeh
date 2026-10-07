@@ -1,7 +1,11 @@
 import { createEinblickCmsTags } from "@einblick/sdk/next/cache";
+import {
+  ASSET_RESOURCES,
+  EINBLICK_WEBSITE,
+  type EinblickResourceSlug,
+} from "./einblick.generated";
 
-export const einblickTags = createEinblickCmsTags({
-  // `site-settings` reads embed the portfolio PDF asset (URL, file name),
-  // so file metadata changes notified under `files` must expire them too.
-  fanOut: { files: ["site-settings"] },
+export const einblickTags = createEinblickCmsTags<EinblickResourceSlug>({
+  website: EINBLICK_WEBSITE,
+  assetResources: ASSET_RESOURCES,
 });
