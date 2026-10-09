@@ -20,6 +20,7 @@ export default async function PrivacyPage() {
     <main className="fixed inset-x-0 top-0 bottom-[var(--einblick-editor-bottom-offset,0px)] overflow-y-auto bg-black px-6 py-16 text-white">
       <div className="mx-auto max-w-3xl">
         <EditableText
+          editInline
           as="h1"
           binding={page.binding("introduction.title")}
           placeholder="Privacy title"
@@ -30,6 +31,7 @@ export default async function PrivacyPage() {
         <div className="mt-8 space-y-5 leading-7 text-white/80">
           <p>
             <EditableText
+              editInline
               as="span"
               binding={page.binding("introduction.controller")}
               placeholder="Controller information"
@@ -51,6 +53,7 @@ export default async function PrivacyPage() {
             .
           </p>
           <EditableText
+            editInline
             as="p"
             binding={page.binding("analytics.consent")}
             placeholder="Analytics consent information"
@@ -58,6 +61,7 @@ export default async function PrivacyPage() {
             {analytics.consent}
           </EditableText>
           <EditableText
+            editInline
             as="p"
             binding={page.binding("analytics.collection")}
             placeholder="Data collection information"
@@ -65,6 +69,7 @@ export default async function PrivacyPage() {
             {analytics.collection}
           </EditableText>
           <EditableText
+            editInline
             as="p"
             binding={page.binding("analytics.retention")}
             placeholder="Retention information"
@@ -72,6 +77,7 @@ export default async function PrivacyPage() {
             {analytics.retention}
           </EditableText>
           <EditableText
+            editInline
             as="p"
             binding={page.binding("analytics.portfolio")}
             placeholder="Portfolio analytics information"

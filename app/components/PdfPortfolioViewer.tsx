@@ -718,7 +718,12 @@ export default function PdfPortfolioViewer({
         event.defaultPrevented ||
         event.metaKey ||
         event.ctrlKey ||
-        event.altKey
+        event.altKey ||
+        document.documentElement.dataset.einblickEditorMode === "edit" ||
+        (event.target instanceof HTMLElement &&
+          event.target.closest(
+            "input, textarea, select, button, a, [contenteditable], [data-einblick-chrome]",
+          ))
       ) {
         return;
       }
@@ -1015,6 +1020,7 @@ export default function PdfPortfolioViewer({
         style={{ touchAction: "pan-x pan-y" }}
       >
         <EditableText
+          editInline
           as="h1"
           binding={bindings["dossier.title"]}
           placeholder="Portfolio title"
@@ -1114,6 +1120,7 @@ export default function PdfPortfolioViewer({
         >
           <Download aria-hidden="true" className="h-4 w-4" strokeWidth={2.2} />
           <EditableText
+            editInline
             as="span"
             binding={bindings["controls.downloadLabel"]}
             placeholder="Download label"
