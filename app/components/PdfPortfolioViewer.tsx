@@ -1,5 +1,8 @@
 "use client";
 
+import { EditableRegion, EditableText } from "@einblick/editor/react";
+import type { EinblickEditableBinding } from "@einblick/editor";
+import type { EinblickAsset } from "@einblick/sdk";
 import { ChevronDown, ChevronUp, Download, LoaderCircle } from "lucide-react";
 import {
   useCallback,
@@ -20,7 +23,6 @@ import type {
 const MAX_CANVAS_PIXELS = 24_000_000;
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 4;
-const PDF_URL = "/portfolio.pdf";
 const WORKER_URL = new URL(
   "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
   import.meta.url,
@@ -68,7 +70,10 @@ function getTouchDistance(touches: ViewerTouchList) {
     return 0;
   }
 
-  return Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY);
+  return Math.hypot(
+    first.clientX - second.clientX,
+    first.clientY - second.clientY,
+  );
 }
 
 function getTouchCenter(touches: ViewerTouchList) {
@@ -104,7 +109,22 @@ function isReaderControlTarget(target: EventTarget | null) {
   );
 }
 
-export default function PdfPortfolioViewer() {
+type PortfolioViewerProps = {
+  dossier: { title: string; pdf: EinblickAsset | null };
+  downloadLabel: string;
+  bindings: Record<string, EinblickEditableBinding | null>;
+};
+
+export default function PdfPortfolioViewer({
+  dossier,
+  downloadLabel,
+  bindings,
+}: PortfolioViewerProps) {
+  // Keep PDF.js requests on this origin, including local and draft previews.
+  // A replacement gets a new URL so the browser cannot reuse the previous PDF.
+  const pdfUrl = dossier.pdf
+    ? `/portfolio.pdf?file=${encodeURIComponent(dossier.pdf.id)}`
+    : "/portfolio.pdf";
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<HTMLDivElement | null>(null);
@@ -202,8 +222,14 @@ export default function PdfPortfolioViewer() {
     return {
       focalX: clientX - scrollRect.left,
       focalY: clientY - scrollRect.top,
-      normalizedX: Math.min(Math.max((clientX - canvasRect.left) / canvasRect.width, 0), 1),
-      normalizedY: Math.min(Math.max((clientY - canvasRect.top) / canvasRect.height, 0), 1),
+      normalizedX: Math.min(
+        Math.max((clientX - canvasRect.left) / canvasRect.width, 0),
+        1,
+      ),
+      normalizedY: Math.min(
+        Math.max((clientY - canvasRect.top) / canvasRect.height, 0),
+        1,
+      ),
     };
   }, []);
 
@@ -357,7 +383,7 @@ export default function PdfPortfolioViewer() {
         pdfjs.GlobalWorkerOptions.workerSrc = WORKER_URL;
 
         loadingTask = pdfjs.getDocument({
-          url: PDF_URL,
+          url: pdfUrl,
           rangeChunkSize: 512 * 1024,
           useSystemFonts: true,
         });
@@ -416,7 +442,7 @@ export default function PdfPortfolioViewer() {
         void loadingTask?.destroy();
       }
     };
-  }, []);
+  }, [pdfUrl]);
 
   useEffect(() => {
     if (!pdfDocument || !pageCount || !hasRendered) {
@@ -510,7 +536,12 @@ export default function PdfPortfolioViewer() {
   useEffect(() => {
     const canvas = canvasRef.current;
 
-    if (!pdfDocument || !canvas || viewerSize.width <= 0 || viewerSize.height <= 0) {
+    if (
+      !pdfDocument ||
+      !canvas ||
+      viewerSize.width <= 0 ||
+      viewerSize.height <= 0
+    ) {
       return;
     }
 
@@ -538,7 +569,9 @@ export default function PdfPortfolioViewer() {
           viewerSize.width / baseViewport.width,
           viewerSize.height / baseViewport.height,
         );
-        const cssViewport = page.getViewport({ scale: cssScale * targetRenderZoom });
+        const cssViewport = page.getViewport({
+          scale: cssScale * targetRenderZoom,
+        });
         const pixelRatio = window.devicePixelRatio || 1;
         const canvasPixels = cssViewport.width * cssViewport.height;
         const maxOutputRatio = Math.sqrt(MAX_CANVAS_PIXELS / canvasPixels);
@@ -593,7 +626,9 @@ export default function PdfPortfolioViewer() {
             renderCanvas.style.height = `${cssHeight}px`;
             renderCanvas.dataset.page = String(pageNumber);
 
-            const displayContext = renderCanvas.getContext("2d", { alpha: false });
+            const displayContext = renderCanvas.getContext("2d", {
+              alpha: false,
+            });
 
             if (!displayContext) {
               setError("The browser could not create a canvas context.");
@@ -647,7 +682,12 @@ export default function PdfPortfolioViewer() {
     const scrollArea = scrollAreaRef.current;
     const pinch = pinchRef.current;
 
-    if (!scrollArea || !pinch || pageCssSize.width <= 0 || pageCssSize.height <= 0) {
+    if (
+      !scrollArea ||
+      !pinch ||
+      pageCssSize.width <= 0 ||
+      pageCssSize.height <= 0
+    ) {
       return;
     }
 
@@ -674,11 +714,20 @@ export default function PdfPortfolioViewer() {
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) {
+      if (
+        event.defaultPrevented ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey
+      ) {
         return;
       }
 
-      if (event.key === "ArrowDown" || event.key === "PageDown" || event.key === " ") {
+      if (
+        event.key === "ArrowDown" ||
+        event.key === "PageDown" ||
+        event.key === " "
+      ) {
         event.preventDefault();
         revealControls();
         navigate(1);
@@ -746,7 +795,9 @@ export default function PdfPortfolioViewer() {
         }
 
         setActiveZoom((currentZoom) => {
-          const nextZoom = clampZoom(currentZoom * (event.deltaY > 0 ? 0.9 : 1.1));
+          const nextZoom = clampZoom(
+            currentZoom * (event.deltaY > 0 ? 0.9 : 1.1),
+          );
 
           zoomRef.current = nextZoom;
 
@@ -784,76 +835,82 @@ export default function PdfPortfolioViewer() {
     [getZoomAnchor, navigate, pageCount, revealControls],
   );
 
-  const handleTouchStart = useCallback((event: TouchEvent<HTMLDivElement>) => {
-    if (isReaderControlTarget(event.target)) {
-      tapStartRef.current = null;
-      touchStartYRef.current = null;
-      return;
-    }
-
-    if (event.touches.length === 2) {
-      const center = getTouchCenter(event.touches);
-      const distance = getTouchDistance(event.touches);
-      const anchor = center ? getZoomAnchor(center.x, center.y) : null;
-
-      if (!anchor || distance <= 0) {
+  const handleTouchStart = useCallback(
+    (event: TouchEvent<HTMLDivElement>) => {
+      if (isReaderControlTarget(event.target)) {
+        tapStartRef.current = null;
+        touchStartYRef.current = null;
         return;
       }
 
-      pinchRef.current = {
-        distance,
-        startZoom: zoomRef.current,
-        ...anchor,
+      if (event.touches.length === 2) {
+        const center = getTouchCenter(event.touches);
+        const distance = getTouchDistance(event.touches);
+        const anchor = center ? getZoomAnchor(center.x, center.y) : null;
+
+        if (!anchor || distance <= 0) {
+          return;
+        }
+
+        pinchRef.current = {
+          distance,
+          startZoom: zoomRef.current,
+          ...anchor,
+        };
+        tapStartRef.current = null;
+        touchStartYRef.current = null;
+        return;
+      }
+
+      const touch = event.touches[0];
+
+      if (!touch) {
+        tapStartRef.current = null;
+        touchStartYRef.current = null;
+        return;
+      }
+
+      tapStartRef.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: window.performance.now(),
       };
-      tapStartRef.current = null;
-      touchStartYRef.current = null;
-      return;
-    }
+      touchStartYRef.current = touch.clientY;
+    },
+    [getZoomAnchor],
+  );
 
-    const touch = event.touches[0];
+  const handleTouchMove = useCallback(
+    (event: TouchEvent<HTMLDivElement>) => {
+      const pinch = pinchRef.current;
 
-    if (!touch) {
-      tapStartRef.current = null;
-      touchStartYRef.current = null;
-      return;
-    }
+      if (!pinch || event.touches.length !== 2) {
+        return;
+      }
 
-    tapStartRef.current = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: window.performance.now(),
-    };
-    touchStartYRef.current = touch.clientY;
-  }, [getZoomAnchor]);
+      const scrollArea = scrollAreaRef.current;
+      const center = getTouchCenter(event.touches);
+      const distance = getTouchDistance(event.touches);
 
-  const handleTouchMove = useCallback((event: TouchEvent<HTMLDivElement>) => {
-    const pinch = pinchRef.current;
+      if (!scrollArea || !center || distance <= 0) {
+        return;
+      }
 
-    if (!pinch || event.touches.length !== 2) {
-      return;
-    }
+      event.preventDefault();
 
-    const scrollArea = scrollAreaRef.current;
-    const center = getTouchCenter(event.touches);
-    const distance = getTouchDistance(event.touches);
+      const anchor = getZoomAnchor(center.x, center.y);
+      const nextZoom = clampZoom(pinch.startZoom * (distance / pinch.distance));
 
-    if (!scrollArea || !center || distance <= 0) {
-      return;
-    }
+      if (anchor) {
+        pinch.focalX = anchor.focalX;
+        pinch.focalY = anchor.focalY;
+      }
 
-    event.preventDefault();
-
-    const anchor = getZoomAnchor(center.x, center.y);
-    const nextZoom = clampZoom(pinch.startZoom * (distance / pinch.distance));
-
-    if (anchor) {
-      pinch.focalX = anchor.focalX;
-      pinch.focalY = anchor.focalY;
-    }
-
-    zoomRef.current = nextZoom;
-    setActiveZoom(nextZoom);
-  }, [getZoomAnchor]);
+      zoomRef.current = nextZoom;
+      setActiveZoom(nextZoom);
+    },
+    [getZoomAnchor],
+  );
 
   const handleTouchEnd = useCallback(
     (event: TouchEvent<HTMLDivElement>) => {
@@ -944,104 +1001,137 @@ export default function PdfPortfolioViewer() {
     "grid h-11 w-11 place-items-center rounded-full bg-black text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:pointer-events-none disabled:opacity-35";
 
   return (
-    <main
-      ref={viewerRef}
-      aria-busy={isRendering}
-      className="relative h-dvh w-dvw overflow-hidden bg-black text-white"
-      onMouseDown={revealControls}
-      onMouseMove={revealControls}
-      onTouchEnd={handleTouchEnd}
-      onTouchMove={handleTouchMove}
-      onTouchStart={handleTouchStart}
-      onWheel={handleWheel}
-      style={{ touchAction: "pan-x pan-y" }}
-    >
-      <div ref={scrollAreaRef} className="pdf-scroll-area h-full w-full overflow-auto overscroll-contain">
+    <EditableRegion binding={bindings["dossier.pdf"]} className="block">
+      <main
+        ref={viewerRef}
+        aria-busy={isRendering}
+        className="relative h-[calc(100dvh-var(--einblick-editor-bottom-offset,0px))] w-dvw overflow-hidden bg-black text-white"
+        onMouseDown={revealControls}
+        onMouseMove={revealControls}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
+        onTouchStart={handleTouchStart}
+        onWheel={handleWheel}
+        style={{ touchAction: "pan-x pan-y" }}
+      >
+        <EditableText
+          as="h1"
+          binding={bindings["dossier.title"]}
+          placeholder="Portfolio title"
+          className="absolute left-3 top-3 z-10 max-w-[calc(100%-5rem)] rounded bg-black/70 px-3 py-2 text-xs text-white sm:left-5 sm:top-5"
+        >
+          {dossier.title}
+        </EditableText>
         <div
-          className="grid place-items-center"
-          style={{
-            height: contentHeight > 0 ? `${contentHeight}px` : "100%",
-            width: contentWidth > 0 ? `${contentWidth}px` : "100%",
-          }}
+          ref={scrollAreaRef}
+          className="pdf-scroll-area h-full w-full overflow-auto overscroll-contain"
         >
           <div
-            className="relative"
+            className="grid place-items-center"
             style={{
-              height: visualPageHeight > 0 ? `${visualPageHeight}px` : undefined,
-              width: visualPageWidth > 0 ? `${visualPageWidth}px` : undefined,
+              height: contentHeight > 0 ? `${contentHeight}px` : "100%",
+              width: contentWidth > 0 ? `${contentWidth}px` : "100%",
             }}
           >
-            <canvas
-              ref={canvasRef}
-              className="block origin-top-left bg-white"
-              style={{ transform: `scale(${visualScale})` }}
-            />
+            <div
+              className="relative"
+              style={{
+                height:
+                  visualPageHeight > 0 ? `${visualPageHeight}px` : undefined,
+                width: visualPageWidth > 0 ? `${visualPageWidth}px` : undefined,
+              }}
+            >
+              <canvas
+                ref={canvasRef}
+                className="block origin-top-left bg-white"
+                style={{ transform: `scale(${visualScale})` }}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {!hasRendered || error ? (
-        <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black">
-          <div className="flex items-center gap-3 rounded-full bg-black px-4 py-2.5 text-sm font-medium text-white">
-            {!error ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
-            <span>{statusText}</span>
+        {!hasRendered || error ? (
+          <div className="pointer-events-none absolute inset-0 grid place-items-center bg-black">
+            <div className="flex items-center gap-3 rounded-full bg-black px-4 py-2.5 text-sm font-medium text-white">
+              {!error ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : null}
+              <span>{statusText}</span>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      <div
-        aria-hidden={!showTransientControls}
-        data-reader-control="true"
-        className={`fixed right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 transition-opacity duration-300 sm:right-5 ${transientControlsClass}`}
-      >
-        <button
-          aria-label="Previous page"
-          className={iconButtonClass}
-          disabled={!canGoBack}
-          onClick={() => navigate(-1)}
-          tabIndex={showTransientControls ? undefined : -1}
-          title="Previous page"
-          type="button"
-        >
-          <ChevronUp aria-hidden="true" className="h-5 w-5" strokeWidth={2.2} />
-        </button>
-        <button
-          aria-label="Next page"
-          className={iconButtonClass}
-          disabled={!canGoForward}
-          onClick={() => navigate(1)}
-          tabIndex={showTransientControls ? undefined : -1}
-          title="Next page"
-          type="button"
-        >
-          <ChevronDown aria-hidden="true" className="h-5 w-5" strokeWidth={2.2} />
-        </button>
-      </div>
-
-      <a
-        aria-label="Download portfolio PDF"
-        aria-hidden={!showTransientControls}
-        className={`fixed left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition-opacity duration-300 hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${transientControlsClass}`}
-        data-reader-control="true"
-        download="Lennon-Hartmann-Portfolio.pdf"
-        href={PDF_URL}
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
-        tabIndex={showTransientControls ? undefined : -1}
-        title="Download portfolio PDF"
-      >
-        <Download aria-hidden="true" className="h-4 w-4" strokeWidth={2.2} />
-        <span>Download PDF</span>
-      </a>
-
-      {pageCount > 0 ? (
         <div
-          aria-live="polite"
           aria-hidden={!showTransientControls}
-          className={`fixed left-1/2 top-[calc(env(safe-area-inset-top)+0.75rem)] z-10 -translate-x-1/2 rounded-full bg-black px-3 py-1.5 text-xs font-medium tabular-nums text-white transition-opacity duration-300 ${transientControlsClass}`}
+          data-reader-control="true"
+          className={`fixed right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-2 transition-opacity duration-300 sm:right-5 ${transientControlsClass}`}
         >
-          {pageNumber} / {pageCount}
+          <button
+            aria-label="Previous page"
+            className={iconButtonClass}
+            disabled={!canGoBack}
+            onClick={() => navigate(-1)}
+            tabIndex={showTransientControls ? undefined : -1}
+            title="Previous page"
+            type="button"
+          >
+            <ChevronUp
+              aria-hidden="true"
+              className="h-5 w-5"
+              strokeWidth={2.2}
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            className={iconButtonClass}
+            disabled={!canGoForward}
+            onClick={() => navigate(1)}
+            tabIndex={showTransientControls ? undefined : -1}
+            title="Next page"
+            type="button"
+          >
+            <ChevronDown
+              aria-hidden="true"
+              className="h-5 w-5"
+              strokeWidth={2.2}
+            />
+          </button>
         </div>
-      ) : null}
-    </main>
+
+        <a
+          aria-label="Download portfolio PDF"
+          aria-hidden={!showTransientControls}
+          className={`fixed left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition-opacity duration-300 hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${transientControlsClass}`}
+          data-reader-control="true"
+          download="Lennon-Hartmann-Portfolio.pdf"
+          href={pdfUrl}
+          style={{
+            bottom:
+              "calc(env(safe-area-inset-bottom) + 1rem + var(--einblick-editor-bottom-offset, 0px))",
+          }}
+          tabIndex={showTransientControls ? undefined : -1}
+          title="Download portfolio PDF"
+        >
+          <Download aria-hidden="true" className="h-4 w-4" strokeWidth={2.2} />
+          <EditableText
+            as="span"
+            binding={bindings["controls.downloadLabel"]}
+            placeholder="Download label"
+          >
+            {downloadLabel}
+          </EditableText>
+        </a>
+
+        {pageCount > 0 ? (
+          <div
+            aria-live="polite"
+            aria-hidden={!showTransientControls}
+            className={`fixed left-1/2 top-[calc(env(safe-area-inset-top)+0.75rem)] z-10 -translate-x-1/2 rounded-full bg-black px-3 py-1.5 text-xs font-medium tabular-nums text-white transition-opacity duration-300 ${transientControlsClass}`}
+          >
+            {pageNumber} / {pageCount}
+          </div>
+        ) : null}
+      </main>
+    </EditableRegion>
   );
 }

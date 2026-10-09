@@ -45,9 +45,7 @@ function subscribe(callback: () => void) {
 }
 
 function saveConsent(consent: Exclude<AnalyticsConsent, "unknown">) {
-  const effectiveConsent = isGlobalPrivacyControlEnabled()
-    ? "denied"
-    : consent;
+  const effectiveConsent = isGlobalPrivacyControlEnabled() ? "denied" : consent;
   memoryConsent = effectiveConsent;
   try {
     window.localStorage.setItem(STORAGE_KEY, effectiveConsent);
@@ -131,7 +129,8 @@ export function EinblickAnalyticsConsent() {
         <section
           aria-label="Privacy choices"
           aria-modal="true"
-          className="fixed inset-x-3 bottom-3 z-50 mx-auto max-h-[calc(100dvh-1.5rem)] max-w-3xl overflow-y-auto border border-white/40 bg-[#0a0a0a] text-white sm:inset-x-6 sm:bottom-6 sm:max-h-[calc(100dvh-3rem)]"
+          data-einblick-chrome
+          className="privacy-dialog fixed inset-x-3 bottom-3 z-50 mx-auto max-h-[calc(100dvh-1.5rem)] max-w-3xl overflow-y-auto border border-white/40 bg-[#0a0a0a] text-white sm:inset-x-6 sm:bottom-6 sm:max-h-[calc(100dvh-3rem)]"
           role="dialog"
           id="privacy-settings-dialog"
         >
@@ -172,7 +171,9 @@ export function EinblickAnalyticsConsent() {
                   </p>
                 </div>
                 <div className="flex items-center justify-between border-t border-white/20 px-5 py-4 sm:border-l sm:border-t-0 sm:px-6">
-                  <span className="font-mono text-xs text-white/55">REQUIRED</span>
+                  <span className="font-mono text-xs text-white/55">
+                    REQUIRED
+                  </span>
                   <span
                     aria-label="Necessary storage enabled"
                     className="flex h-7 w-12 items-center justify-end border border-white bg-white p-1"
@@ -192,7 +193,8 @@ export function EinblickAnalyticsConsent() {
                   </p>
                   {gpcEnabled ? (
                     <p className="mt-2 text-xs leading-5 text-white">
-                      Global Privacy Control is enabled, so analytics remains off.
+                      Global Privacy Control is enabled, so analytics remains
+                      off.
                     </p>
                   ) : null}
                 </div>
@@ -215,7 +217,9 @@ export function EinblickAnalyticsConsent() {
                   >
                     <span
                       className={`size-4 ${
-                        analyticsAllowed && !gpcEnabled ? "bg-black" : "bg-white"
+                        analyticsAllowed && !gpcEnabled
+                          ? "bg-black"
+                          : "bg-white"
                       }`}
                     />
                   </button>
@@ -265,7 +269,9 @@ export function PrivacySettingsButton() {
       aria-controls="privacy-settings-dialog"
       aria-haspopup="dialog"
       className="border border-white/40 bg-black px-4 py-2.5 font-mono text-[11px] tracking-[0.12em] text-white transition-colors hover:border-white hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-      onClick={() => window.dispatchEvent(new Event(OPEN_PRIVACY_SETTINGS_EVENT))}
+      onClick={() =>
+        window.dispatchEvent(new Event(OPEN_PRIVACY_SETTINGS_EVENT))
+      }
       type="button"
     >
       PRIVACY CHOICES

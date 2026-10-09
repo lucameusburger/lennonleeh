@@ -1,4 +1,4 @@
-import PdfPortfolioViewer from "./components/PdfPortfolioViewer";
+import PortfolioPage from "./portfolio/page";
 import {
   absoluteUrl,
   lastUpdated,
@@ -126,10 +126,12 @@ export default function Home() {
             architecture dossier PDF to view selected academic works,
             interdisciplinary practice, and recent competitions.
           </p>
-          <a href={portfolioPdfPath}>Download Lennon Lee Hartmann portfolio PDF</a>
+          <a href={portfolioPdfPath}>
+            Download Lennon Lee Hartmann portfolio PDF
+          </a>
         </section>
       </noscript>
-      <PdfPortfolioViewer />
+      <PortfolioPage />
     </>
   );
 }

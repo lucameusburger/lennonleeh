@@ -1,3 +1,4 @@
+import { isEinblickDraftMode } from "@einblick/sdk/next";
 import { getPortfolioPdfAsset } from "@/app/lib/cms";
 
 const DEFAULT_PDF_FILENAME = "lennon-lee-hartmann-portfolio.pdf";
@@ -36,7 +37,10 @@ function getForwardedRequestHeaders(request: Request) {
   return headers;
 }
 
-function getPdfResponseHeaders(assetFileName: string | undefined, upstream: Response) {
+function getPdfResponseHeaders(
+  assetFileName: string | undefined,
+  upstream: Response,
+) {
   const headers = new Headers({
     "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
     "Content-Disposition": getContentDisposition(assetFileName),
@@ -76,7 +80,8 @@ async function proxyPortfolioPdf(request: Request, method: "GET" | "HEAD") {
     }
 
     const requestHeaders = getForwardedRequestHeaders(request);
-    const shouldProbeForHead = method === "HEAD" && !requestHeaders.has("range");
+    const shouldProbeForHead =
+      method === "HEAD" && !requestHeaders.has("range");
 
     if (shouldProbeForHead) {
       requestHeaders.set("range", "bytes=0-0");
@@ -89,9 +94,14 @@ async function proxyPortfolioPdf(request: Request, method: "GET" | "HEAD") {
       signal: request.signal,
     });
     const headers = getPdfResponseHeaders(asset.fileName, upstream);
+    if (await isEinblickDraftMode()) {
+      headers.set("Cache-Control", "private, no-store");
+    }
 
     if (shouldProbeForHead) {
-      const totalByteLength = getTotalByteLength(upstream.headers.get("content-range"));
+      const totalByteLength = getTotalByteLength(
+        upstream.headers.get("content-range"),
+      );
 
       if (totalByteLength) {
         headers.set("content-length", totalByteLength);

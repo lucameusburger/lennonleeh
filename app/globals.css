@@ -43,3 +43,15 @@ a {
 .pdf-scroll-area::-webkit-scrollbar {
   display: none;
 }
+
+.privacy-dialog {
+  bottom: calc(0.75rem + var(--einblick-editor-bottom-offset, 0px));
+  max-height: calc(100dvh - 1.5rem - var(--einblick-editor-bottom-offset, 0px));
+}
+
+@media (min-width: 640px) {
+  .privacy-dialog {
+    bottom: calc(1.5rem + var(--einblick-editor-bottom-offset, 0px));
+    max-height: calc(100dvh - 3rem - var(--einblick-editor-bottom-offset, 0px));
+  }
+}
