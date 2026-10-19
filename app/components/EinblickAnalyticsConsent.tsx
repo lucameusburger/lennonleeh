@@ -1,59 +1,16 @@
 "use client";
 
-import type { AnalyticsConsent } from "@einblick/analytics";
-import { Analytics } from "@einblick/analytics/next";
+import { readGlobalPrivacyControl } from "@einblick/analytics";
+import {
+  Analytics,
+  useStoredAnalyticsConsent,
+} from "@einblick/analytics/next";
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "einblick-analytics-consent";
-const CONSENT_EVENT = "einblick-analytics-consent-change";
 const OPEN_PRIVACY_SETTINGS_EVENT = "privacy-settings:open";
-let memoryConsent: AnalyticsConsent = "unknown";
 
-type PrivacyNavigator = Navigator & { globalPrivacyControl?: boolean };
 type Panel = "summary" | "preferences" | null;
-
-function isGlobalPrivacyControlEnabled() {
-  return (
-    typeof navigator !== "undefined" &&
-    (navigator as PrivacyNavigator).globalPrivacyControl === true
-  );
-}
-
-function readConsent(): AnalyticsConsent {
-  if (typeof window === "undefined") return "unknown";
-  if (isGlobalPrivacyControlEnabled()) return "denied";
-
-  try {
-    const value = window.localStorage.getItem(STORAGE_KEY);
-    return value === "granted" || value === "denied" ? value : memoryConsent;
-  } catch {
-    return memoryConsent;
-  }
-}
-
-function subscribe(callback: () => void) {
-  const handleStorage = (event: StorageEvent) => {
-    if (event.key === STORAGE_KEY) callback();
-  };
-  window.addEventListener("storage", handleStorage);
-  window.addEventListener(CONSENT_EVENT, callback);
-  return () => {
-    window.removeEventListener("storage", handleStorage);
-    window.removeEventListener(CONSENT_EVENT, callback);
-  };
-}
-
-function saveConsent(consent: Exclude<AnalyticsConsent, "unknown">) {
-  const effectiveConsent = isGlobalPrivacyControlEnabled() ? "denied" : consent;
-  memoryConsent = effectiveConsent;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, effectiveConsent);
-  } catch {
-    // The in-memory decision still applies when browser storage is unavailable.
-  }
-  window.dispatchEvent(new Event(CONSENT_EVENT));
-}
 
 function ChoiceButton({
   children,
@@ -80,18 +37,23 @@ function ChoiceButton({
 }
 
 export function EinblickAnalyticsConsent() {
-  const consent = useSyncExternalStore<AnalyticsConsent>(
-    subscribe,
-    readConsent,
-    () => "unknown",
-  );
+  // Stored under the same `einblick-analytics-consent` key the site used
+  // before, so returning visitors keep their decision.
+  const [storedConsent, setStoredConsent, isReady] =
+    useStoredAnalyticsConsent();
   const [panel, setPanel] = useState<Panel>(null);
   const [analyticsAllowed, setAnalyticsAllowed] = useState(false);
-  const gpcEnabled = isGlobalPrivacyControlEnabled();
-  const activePanel = panel ?? (consent === "unknown" ? "summary" : null);
+  // GPC exists only in the browser: read it after hydration so the server
+  // HTML and the first client render match.
+  const gpcEnabled = isReady && readGlobalPrivacyControl();
+  const consent = gpcEnabled ? "denied" : storedConsent;
+  // Before storage is read, consent is "unknown" for everyone; gating on
+  // isReady keeps the banner out of the server HTML and avoids a flash.
+  const activePanel =
+    panel ?? (isReady && consent === "unknown" ? "summary" : null);
 
   const decide = (decision: "granted" | "denied") => {
-    saveConsent(decision);
+    setStoredConsent(gpcEnabled ? "denied" : decision);
     setPanel(null);
   };
 
@@ -123,7 +85,7 @@ export function EinblickAnalyticsConsent() {
 
   return (
     <>
-      <Analytics consent={gpcEnabled ? "denied" : consent} />
+      <Analytics consent={consent} />
 
       {activePanel ? (
         <section
