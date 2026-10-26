@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "@einblick/analytics": "0.1.7",
-    "@einblick/editor": "0.3.5",
-    "@einblick/sdk": "3.8.0",
+    "@einblick/editor": "0.4.0",
+    "@einblick/sdk": "3.22.0",
     "lucide-react": "^1.16.0",
     "next": "16.4.3",
     "pdfjs-dist": "^5.7.284",
