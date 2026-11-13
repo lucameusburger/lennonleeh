@@ -15,8 +15,8 @@ importers:
         specifier: 0.4.0
         version: 0.4.0(next@16.4.3(@babel/core@7.29.0)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@einblick/sdk':
-        specifier: 3.22.0
-        version: 3.22.0(next@16.4.3(@babel/core@7.29.0)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: 3.28.0
+        version: 3.28.0(next@16.4.3(@babel/core@7.29.0)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       lucide-react:
         specifier: ^1.16.0
         version: 1.16.0(react@19.2.4)
@@ -161,8 +161,8 @@ packages:
       react-dom:
         optional: true
 
-  '@einblick/sdk@3.22.0':
-    resolution: {integrity: sha512-wCdPGW/dE9+hGblFR0p3uBjEE+b/e94kpR34V3e8R7y+Ex9Nq/Ke2NbzaXIRt7BHVweVaaON7H8cjZ9c39Go0g==}
+  '@einblick/sdk@3.28.0':
+    resolution: {integrity: sha512-62JSGX5TMmBJJjGBJH1v3FgS/aMU4PBCkvx16ikWFG1t7EBB8gUBPWsg8CirwqqVTiRgrrykbb9p1o5g3Ra1ag==}
     engines: {node: '>=24.0.0'}
     hasBin: true
     peerDependencies:
@@ -2433,7 +2433,7 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  '@einblick/sdk@3.22.0(next@16.4.3(@babel/core@7.29.0)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@einblick/sdk@3.28.0(next@16.4.3(@babel/core@7.29.0)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     optionalDependencies:
       next: 16.4.3(@babel/core@7.29.0)(@types/node@20.19.41)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react: 19.2.4
